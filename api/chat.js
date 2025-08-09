@@ -1,6 +1,17 @@
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
+  // CORS headers
+  res.setHeader("Access-Control-Allow-Origin", "*"); // adjust "*" to your frontend URL for better security
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    // Respond to preflight request
+    res.status(204).end();
+    return;
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
@@ -14,8 +25,8 @@ export default async function handler(req, res) {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json"
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         model: "moonshotai/kimi-k2:free",
@@ -23,16 +34,15 @@ export default async function handler(req, res) {
           {
             role: "system",
             content:
-              "You are a tech assistant for NextDev Academy. ONLY answer tech questions about programming, software, hardware, networking, and IT skills. If asked non-tech questions, respond: 'I specialize in tech topics only.'"
+              "You are a tech assistant for NextDev Academy. ONLY answer tech questions about programming, software, hardware, networking, and IT skills. If asked non-tech questions, respond: 'I specialize in tech topics only.'",
           },
-          { role: "user", content: message }
-        ]
-      })
+          { role: "user", content: message },
+        ],
+      }),
     });
 
     const data = await response.json();
     res.status(response.status).json(data);
-
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
