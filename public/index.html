@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NextDev Academy Chatbot</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 2em auto; }
+    #chat-box { border: 1px solid #ccc; padding: 1em; height: 400px; overflow-y: auto; }
+    #user-input { width: 80%; padding: 0.5em; }
+    button { padding: 0.5em 1em; }
+    .message { margin-bottom: 1em; }
+    .user { font-weight: bold; }
+    .bot { color: blue; }
+  </style>
+</head>
+<body>
+
+  <h1>NextDev Academy Chatbot</h1>
+  <div id="chat-box"></div>
+  <input id="user-input" type="text" placeholder="Ask a tech question..." />
+  <button onclick="sendMessage()">Send</button>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById('user-input');
+      const message = input.value.trim();
+      if (!message) return;
+      
+      const chatBox = document.getElementById('chat-box');
+      chatBox.innerHTML += `<div class="message user">You: ${message}</div>`;
+      input.value = '';
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+
+        const data = await response.json();
+        const botReply = data.choices?.[0]?.message?.content || 'Sorry, no response.';
+        chatBox.innerHTML += `<div class="message bot">Kimi: ${botReply}</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+      } catch (err) {
+        chatBox.innerHTML += `<div class="message bot">Error contacting server.</div>`;
+      }
+    }
+  </script>
+</body>
+</html>
