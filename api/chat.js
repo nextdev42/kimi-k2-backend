@@ -1,13 +1,11 @@
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
-  // CORS headers
-  res.setHeader("Access-Control-Allow-Origin", "*"); // adjust "*" to your frontend URL for better security
+  res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") {
-    // Respond to preflight request
     res.status(204).end();
     return;
   }
@@ -41,9 +39,16 @@ export default async function handler(req, res) {
       }),
     });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("OpenRouter API error:", response.status, errorText);
+      return res.status(500).json({ error: `OpenRouter API error: ${response.status}`, details: errorText });
+    }
+
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Internal error:", error);
+    res.status(500).json({ error: "Internal server error", details: error.message });
   }
 }
