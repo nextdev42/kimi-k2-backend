@@ -12,10 +12,18 @@ if (!OPENROUTER_API_KEY) {
   process.exit(1);
 }
 
+app.get("/", (req, res) => {
+  res.send("NextDev Academy Kimi K2 backend is running!");
+});
+
 app.post("/chat", async (req, res) => {
   const userMessage = req.body.message?.trim() || "";
+  console.log("Received message:", userMessage);
 
-  // Call Kimi K2 API directly (model handles filtering)
+  if (!userMessage) {
+    return res.status(400).json({ error: "Message is required" });
+  }
+
   try {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -35,11 +43,13 @@ app.post("/chat", async (req, res) => {
       })
     });
 
-    // Forward OpenRouter's response directly
     const data = await response.json();
+    console.log("OpenRouter response:", data);
+
     res.status(response.status).json(data);
 
   } catch (error) {
+    console.error("Error calling OpenRouter API:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
